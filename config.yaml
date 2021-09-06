@@ -81,10 +81,10 @@ params:
   tiles:
     enable: yes
     showcase:
-      - image: pic01.jpg
+      - image: pic01.jpg # change yourself
         subtitle: Hello, nice to meet you.
         title: Introduction
-        url: blogs/aliquam
+        url: blogs/xinyue #blogs/yourname
       - image: pic02.jpg
         subtitle: Schools
         title: Education
