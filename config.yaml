@@ -10,7 +10,7 @@ params:
     #subtitle: |-
       #A RESPONSIVE SITE TEMPLATE DESIGNED BY HTML5 UP
       #AND RELEASED UNDER THE CREATIVE COMMONS.
-    title: Hi, my name is Xinyue Zhang. I am a student of LBS MAM 2022.
+    title: Hi, I am Xinyue Zhang. Nice to meet you.
   blog: {}
   contact:
     address:
@@ -35,25 +35,25 @@ params:
     text: Please visit [this page](/)
   favicon: favicon.ico
   footer:
-    copyright: Company Name
+    copyright: Xinyue Zhang
     enable: yes
     #quicklinks:
       #- alt: HTML5 UP
         #text: 'Design: '
         #url: https://www.html5up.net
     social:
-      #- icon: fa-twitter
-        #label: Twitter
-        #url: https://www.twitter.com
-      - icon: fa-facebook
-        label: Facebook
-        url: https://www.facebook.com
+      # - icon: fa-twitter
+      # label: Twitter
+      # url: https://www.twitter.com
+      # - icon: fa-facebook
+      #   label: Facebook
+      #   url: https://www.facebook.com
       - icon: fa-instagram
         label: Instagram
-        url: https://www.instagram.com
+        url: https://www.instagram.com/xinyue_z/
       - icon: fa-github
         label: GitHub
-        url: https://www.github.com
+        url: https://github.com/xinyuezhang23
       - icon: fa-linkedin
         label: LinkedIn
         url: https://www.linkedin.com/in/xinyue-zhang-9942aa155/
@@ -76,14 +76,14 @@ params:
       - name: Elements
         url: elements.html
     menu: Menu
-    subtitle: By HTML5 Up
-    title: Forty
+    subtitle: 
+    title: AM01
   tiles:
     enable: yes
     showcase:
       - image: pic01.jpg # change yourself
-        subtitle: Hello, nice to meet you.
-        title: Introduction
+        subtitle: Applied Statistic.
+        title: Pre course assigment.
         url: blogs/xinyue #blogs/yourname
       - image: pic02.jpg
         subtitle: Schools

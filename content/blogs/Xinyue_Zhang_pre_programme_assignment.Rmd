@@ -1,17 +1,17 @@
 ---
-categories:
-- ""
-- ""
-date: "2017-10-31T22:42:51-05:00"
+title: "Aliquam"
+date: '2017-10-31T22:42:51-05:00'
 description: Nullam et orci eu lorem consequat tincidunt vivamus et sagittis magna
   sed nunc rhoncus condimentum sem. In efficitur ligula tate urna. Maecenas massa
   sed magna lacinia magna pellentesque lorem ipsum dolor. Nullam et orci eu lorem
   consequat tincidunt. Vivamus et sagittis tempus.
-draft: false
+draft: no
 image: pic07.jpg
-keywords: ""
+keywords: ''
 slug: xinyue
-title: Aliquam
+categories:
+- ''
+- ''
 ---
 
 
@@ -24,7 +24,6 @@ library(janitor)
 
 The goal is to test your software installation, to demonstrate competency in Markdown, and in the basics of `ggplot`.
 
-> Please delete all the intro text I wrote from line 22 to line 69 and start writing your short biography after this blockquote.
 
 ## A brief biography
 Hi, my name is **Xinyue Zhang** and I am from **China**.   
@@ -37,7 +36,7 @@ Here are some key points about me.
 
 As for work experience, please refer to my [LinkedIn Profile](https://www.linkedin.com/in/xinyue-zhang-9942aa155/).
 
-![Here is my photo](photo.jpg)
+![Here is my photo](myphoto.jpg)
 
 
 
