@@ -81,27 +81,31 @@ params:
   tiles:
     enable: yes
     showcase:
-      - image: pic01.jpg # change yourself
+      - image: work.jpg
+        subtitle: Education and work experience
+        title: My CV
+        url: blogs/magna
+        
+      - image: school1.jpg # change yourself
         subtitle: Applied Statistic.
         title: Pre course assigment.
         url: blogs/xinyue #blogs/yourname
-      - image: pic02.jpg
+        
+      - image: school2.jpg
         subtitle: Making graphs
         title: Group assignment 1
         url: blogs/homework1
-      - image: pic03.jpg
-        subtitle: Internships and jobs
-        title: Career
-        url: blogs/magna
-      - image: pic04.jpg
-        subtitle: Nisl Sed Aliquam
-        title: Ipsum
-        url: blogs/ipsum
-      - image: pic05.jpg
-        subtitle: Ipsum Dolor Sit Amet
-        title: Consequat
-        url: blogs/ipsum
+        
+      - image: pic01.jpg
+        subtitle: Confidence Interval
+        title: Group assignment 2
+        url: blogs/homework2
+        
       - image: pic06.jpg
+        subtitle: Hypothesis test 
+        title: Group assignment 3
+        url: blogs/homework3
+      - image: pic03.jpg
         subtitle: Feugiat Amet Tempus
         title: Etiam
         url: blogs/ipsum

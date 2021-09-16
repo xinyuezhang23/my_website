@@ -1,0 +1,881 @@
+---
+title: "Group assignment 3 of Applied Statics"
+date: '2017-10-31T22:42:51-05:00'
+description: Nullam et orci eu lorem consequat tincidunt vivamus et sagittis magna
+  sed nunc rhoncus condimentum sem. In efficitur ligula tate urna. Maecenas massa
+  sed magna lacinia magna pellentesque lorem ipsum dolor. Nullam et orci eu lorem
+  consequat tincidunt. Vivamus et sagittis tempus.
+draft: no
+# image: pic07.jpg
+keywords: ''
+slug: homework3
+categories:
+- ''
+- ''
+---
+
+```{r, setup, echo=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  tidy=FALSE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75, 
+  fig.height=6.75,
+  fig.align = "center"
+)
+```
+
+
+```{r load-libraries, echo=FALSE}
+library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(mosaic)
+library(ggthemes)
+library(GGally)
+library(readxl)
+library(here)
+library(skimr)
+library(janitor)
+library(broom)
+library(tidyquant)
+library(infer)
+library(openintro)
+```
+
+
+# Youth Risk Behavior Surveillance
+
+Every two years, the Centers for Disease Control and Prevention conduct the [Youth Risk Behavior Surveillance System (YRBSS)](https://www.cdc.gov/healthyyouth/data/yrbs/index.htm) survey, where it takes data from high schoolers (9th through 12th grade), to analyze health patterns. You will work with a selected group of variables from a random sample of observations during one of the years the YRBSS was conducted.
+
+## Load the data
+
+This data is part of the `openintro` textbook and we can load and inspect it. There are observations on 13 different variables, some categorical and some numerical. The meaning of each variable can be found by bringing up the help file:
+
+?yrbss
+
+```{r, load_glimpse_data}
+data(yrbss)
+glimpse(yrbss)
+```
+
+```{r, skim_yrbss}
+skim(yrbss)
+```
+
+## Exploratory Data Analysis
+
+```{r, eda_on_weight}
+#See how many missing values in 'weight'
+skim(yrbss)
+
+#Filter to exclude NA values and summarize key statistics
+yrbss %>% 
+  filter(weight!="NA") %>%
+  summarise_each(funs(mean,median,sd,max,min),weight)
+
+#Histogram for "weight"
+yrbss %>% 
+  filter(weight!="NA") %>% 
+  ggplot(aes(x=weight)) +
+  geom_histogram() +
+  theme_bw() +
+  labs(title = "Histogram for Weight",
+       y = "Count of students",
+       x = "Weight (in kgs)"
+       )
+```
+Weight distribution seems to be slightly right skewed, with some extreme values on the "heavy" side. This means that most of the students weigh around the median of the distribution, but we have some outliers towards the right side which pull the mean towards the right and hence, the mean of the distribution is greater than the median.
+
+The average weight is 67.9 kg and the standard deviation is 16.9, showing a large range of values. Heaviest student is 181 kg and lightest is 29.9kg. We can also observe by skimming our data frame that 1004 values are missing from the weight column, but we have excluded those values from our analysis.
+
+
+Let’s create a new variable in the dataframe `yrbss`, called `physical_3plus` , which will be `yes` if they are physically active for at least 3 days a week, and `no` otherwise. You may also want to calculate the number and % of those who are and are not active for more than 3 days. Use the `count()` function and see if you get the same results as `group_by()... summarise()`
+
+  
+```{r, mutate_and_count}
+#Create new variable (physical_3plus) and remove any NA values
+yrbss <- yrbss %>%
+  mutate(physical_3plus = case_when(
+    physically_active_7d < 3 ~ "no",
+    physically_active_7d >= 3 ~ "yes",
+    TRUE ~ "NA"
+  )) %>% 
+  filter(physical_3plus != "NA") 
+
+#Calculate number of people who are active and that of those who are not using "group_by()" and "summarise()"
+yrbss %>% 
+  group_by(physical_3plus) %>% 
+  summarise(total_number = n()) %>% 
+  mutate(percent = total_number/sum(total_number)*100)
+
+#Perform the same task with "count()"
+yrbss%>% 
+  count(physical_3plus) %>% 
+  mutate(percent = n/sum(n)*100)
+```
+
+We observe that 66.9% of the students are physically active for at least 3 days a week. We note that both, group_by()..summarise() and count() method give the same results. 
+
+
+Can you provide a 95% confidence interval for the population proportion of high schools that are *NOT* active 3 or more days per week?
+
+
+```{r, CI_for_proportion}
+
+#Calculate CIs for proportion (no/total)
+yrbss  %>% 
+  count(physical_3plus) %>% 
+  mutate(proportion = n/sum(n),
+         s_e = sqrt(proportion*(1-proportion)/sum(n)),
+         t_critical = qt(0.975,n-1),
+         interval_low = proportion - s_e*t_critical,
+         interval_high = proportion + s_e*t_critical
+         ) %>% 
+  filter(physical_3plus=="no")
+```
+We observe that the sample proportion of students who are not active for 3 or more days per week is 0.331. The 95% confidence interval for the proportion is [0.323, 0.339].
+
+
+Make a boxplot of `physical_3plus` vs. `weight`. Is there a relationship between these two variables? What did you expect and why?
+
+```{r, boxplot}
+#Plot box plot
+yrbss %>%
+  ggplot(aes(x = physical_3plus, y = weight, color = physical_3plus)) +
+  geom_boxplot() +
+  theme_bw() +
+  labs(color = 'Exercise 3 or more days per week',
+       x = 'Exercise 3 or more days per week',
+       y = 'Weight')
+```
+While our initial prejudices and intuition would suggest people who exercise more would be slimmer, data tells another story. It seems that people who regularly exercise on a weekly basis are slightly more heavy than people who don't and that every quartile is higher for those. Perhaps people who go to the gym build up more muscle mass that contributes to their overall weight. We still need to perform hypothesis testing to determine if the observed difference is statistically significant, and cannot be attributed to luck.
+
+## Confidence Interval
+
+Boxplots show how the medians of the two distributions compare, but we can also compare the means of the distributions using either a confidence interval or a hypothesis test. Note that when we calculate the mean, SD, etc. weight in these groups using the mean function, we must ignore any missing values by setting the `na.rm = TRUE`.
+
+
+```{r, ci_using_formulas}
+#Calculate mean sd and CI for weight factored by physical_3plus variable
+yrbss %>%
+  filter(physical_3plus != "NA", weight != "NA") %>% 
+  group_by(physical_3plus) %>%
+  
+  summarise(mean_weight = mean(weight),
+            sd_weight = sd(weight),
+            count = n()) %>% 
+  
+  #Our sample size is large enough to use z values for our CIs
+  mutate(se_weight = sd_weight/sqrt(count),
+         intervel_high = mean_weight + se_weight * 1.96,
+         intervel_low = mean_weight - se_weight * 1.96)
+```
+
+There is an observed difference of about 1.77kg (68.44 - 66.67), and we notice that the two confidence intervals do not overlap. It seems that the difference in weight for people who are physically active for at least 3 days and those who are not is statistically significant at 95% confidence level. Let us also conduct a hypothesis test.
+
+## Hypothesis test with formula
+
+Null Hypothesis $H_0$ : $\mu_{exercise>=3days} - \mu_{exercise<3days} = 0$
+
+Alternative Hypothesis $H_1$ : $\mu_{exercise>=3days} - \mu_{exercise<3days} \neq 0$
+
+```{r, t_test_using_R}
+yrbss_weight_not_null <- yrbss %>%
+  filter(physical_3plus != "NA", weight != "NA")
+
+#Ho (null hypothesis): Difference of means is 0
+#Ha (alternative hypothesis): Difference of means is not 0
+
+#perform two sample t test fro mean difference
+t.test(weight ~ physical_3plus, data = yrbss_weight_not_null)
+```
+
+We observe that the p-value is less than 0.05, so we can reject the null hypothesis at 95% confidence level and conclude that there is a significant difference in weight for people who are physically active for at least 3 days and those who are not is statistically significant.
+
+
+## Hypothesis test with `infer`
+
+
+```{r, calc_obs_difference}
+obs_diff <- yrbss_weight_not_null %>%
+  
+  #Specifying the variable of interest
+  specify(weight ~ physical_3plus) %>%
+  
+  #Calculting difference in means
+  calculate(stat = "diff in means", order = c("yes", "no")) 
+
+obs_diff
+```
+
+
+Notice how you can use the functions specify and calculate again like you did for calculating confidence intervals. Here, though, the statistic you are searching for is the difference in means, with the order being yes - no != 0.
+
+
+```{r, hypothesis_testing_using_infer_package}
+null_dist <- yrbss_weight_not_null %>%
+  #Specify variables of interest
+  specify(weight ~ physical_3plus) %>%
+  
+  #Assume independence, i.e, there is no difference
+  hypothesize(null = "independence") %>%
+  
+  #Generate 1000 reps, of type "permute"
+  generate(reps = 1000, type = "permute") %>%
+  
+  #Calculate statistic of difference, namely "diff in means"
+  calculate(stat = "diff in means", order = c("yes", "no"))
+```
+
+
+Here, `hypothesize` is used to set the null hypothesis as a test for independence, i.e., that there is no difference between the two population means. In one sample cases, the null argument can be set to *point* to test a hypothesis relative to a point estimate.
+
+Also, note that the `type` argument within generate is set to permute, which is the argument when generating a null distribution for a hypothesis test.
+
+We can visualize this null distribution with the following code:
+
+```{r, null_distribution}
+#Visualising the null distribution
+ggplot(data = null_dist, aes(x = stat)) +
+  geom_histogram() +
+  theme_bw() +
+  labs(title = "Null distribution")
+```
+
+Now that the test is initialized and the null distribution formed, we can visualise to see how many of these null permutations have a difference of at least `obs_stat` of `r obs_diff %>% pull() %>% round(2)`?
+
+We can also calculate the p-value for your hypothesis test using the function `infer::get_p_value()`.
+
+```{r, shade_p_values}
+null_dist %>% visualize() +
+  shade_p_value(obs_stat = obs_diff, direction = "two-sided")
+
+null_dist %>%
+  get_p_value(obs_stat = obs_diff, direction = "two_sided")
+
+```
+
+
+This is the standard workflow for performing hypothesis tests.
+
+
+# IMDB ratings: Differences between directors
+
+Recall the IMBD ratings data. I would like you to explore whether the mean IMDB rating for Steven Spielberg and Tim Burton are the same or not. I have already calculated the confidence intervals for the mean ratings of these two directors and as you can see they overlap. 
+
+
+```{r directors, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here::here("images", "directors.png"), error = FALSE)
+```
+
+First, I would like you to reproduce this graph. You may find useful.
+
+```{r, load_movies_data}
+#Loading the movies dataset
+movies <- read_csv(here::here("data", "movies.csv"))
+glimpse(movies)
+```
+
+
+```{r, CI_for_ratings}
+
+ratings_per_director_CI <- movies %>%
+  filter(director %in% (c("Tim Burton","Steven Spielberg"))) %>% 
+  
+  #Grouping by director to construct 2 CIs
+  group_by(director) %>% 
+  
+  summarise(mean_rating = mean(rating),
+            median_rating = median(rating),
+            sd_rating = sd(rating),
+            count = n(),
+            # get t-critical value with (n-1) degrees of freedom
+            t_critical = qt(0.975, count-1),
+            se_rating = sd_rating/sqrt(count),
+            margin_of_error = t_critical * se_rating,
+            rating_low = mean_rating - margin_of_error,
+            rating_high = mean_rating + margin_of_error) %>% 
+  arrange(desc(mean_rating))
+
+#Displaying CI
+ratings_per_director_CI
+```
+
+
+```{r, visualize_CI, fig.width = 8}
+#Visualise CIs for two directors 
+ratings_per_director_CI %>% 
+  ggplot(aes(x = mean_rating, y = reorder(director, mean_rating),
+             colour=director)) +
+  geom_point(size = 5) +
+  
+  #Plotting the error bar and adjusting the size
+  geom_errorbarh(aes(xmin=rating_low, xmax=rating_high), size=1.1, height = 0.2) + 
+  
+  #Getting the grey coloured block on the plot
+  annotate("rect", xmin= 7.27, xmax=7.33, ymin=-Inf, ymax=Inf, alpha=0.7, fill="grey") +
+  
+  #Setting axes labels
+  labs(x="Mean IMDB Rating",
+       y= "", 
+       title="Do Spielberg and Burton have the same mean IMDB rating?",
+       subtitle="95% confidence intervals overlap") + 
+  theme_bw() +
+  
+  #Adjusting the theme and text
+  theme(legend.position = "none") +
+  annotate("text",x=7.27,y=2.2,label="7.27",color='black',face='bold',size=4) +
+  annotate("text",x=7.57,y=2.2,label="7.57",color='black',face='bold',size=5) +
+  annotate("text",x=7.87,y=2.2,label="7.87",color='black',face='bold',size=4) +
+  annotate("text",x=6.53,y=1.2,label="6.53",color='black',face='bold',size=4) +
+  annotate("text",x=6.93,y=1.2,label="6.93",color='black',face='bold',size=5) +
+  annotate("text",x=7.33,y=1.2,label="7.33",color='black',face='bold',size=4)
+```
+
+
+
+In addition, you will run a hypothesis test. You should use both the `t.test` command and the `infer` package to simulate from a null distribution, where you assume zero difference between the two.
+
+> Before anything, write down the null and alternative hypotheses, as well as the resulting test statistic and the associated t-stat or p-value. At the end of the day, what do you conclude?
+
+Null Hypothesis $H_0$ : $\mu_{Steven Spielberg} - \mu_{Tim Burton} = 0$
+
+Alternative Hypothesis $H_1$ : $\mu_{Steven Spielberg} - \mu_{Tim Burton} \neq 0$
+
+```{r, creating_dataset_for_relevant_directors}
+#Selecting data for relevant directors
+movies_new <- movies %>%
+  filter(director %in% (c("Tim Burton","Steven Spielberg")))
+
+#Hypothesis testing using t.test() 
+t.test(rating ~ director, data= movies_new)
+```
+
+We observe that the t-statistic for this hypothesis test is 3 and the associated p-value is 0.01. Since the p-value is less than 0.05, we can reject the null hypothesis at 95% confidence level and conclude that there is a statistically significant difference between the mean ratings of movies of Tim Burton and Steven Spielberg.
+
+
+```{r, define_obs_diff}
+#Defining obs_diff for creating bootstrap confidence intervals
+
+obs_diff <- movies_new %>%
+  
+  #Specifying the variable of interest
+  specify(rating ~ director) %>%
+  
+  #Calculating difference in means
+  calculate(stat = "diff in means", order = c("Steven Spielberg", "Tim Burton")) 
+```
+
+
+
+```{r, bootstrap_CI_for_rating}
+#Constructing bootstrapped CI
+set.seed(007)
+
+rating_null_dist <- movies_new %>%
+  #Specify variables of interest
+  specify(rating ~ director) %>%
+  
+  #Assume independence, i.e, there is no difference
+  hypothesize(null = "independence") %>%
+  
+  #Generate 1000 reps, of type "permute"
+  generate(reps = 1000, type = "permute") %>%
+  
+  #Calculate statistic of difference, namely "diff in means"
+  calculate(stat = "diff in means", order = c("Steven Spielberg",
+                                              "Tim Burton"))
+```
+
+
+
+```{r, plotting_null_distn}
+#Plotting histogram for null distribution
+ggplot(data = rating_null_dist, aes(x = stat)) +
+  geom_histogram() +
+  theme_bw() +
+  labs(title = "Null distribution")
+```
+
+
+```{r, visualizing_p_value}
+#Shading p-value region
+rating_null_dist %>% visualize() +
+  shade_p_value(obs_stat = obs_diff, direction = "two-sided")
+
+#Getting p-value
+rating_null_dist %>%
+  get_p_value(obs_stat = obs_diff, direction = "two_sided")
+```
+
+
+
+
+# Omega Group plc- Pay Discrimination
+
+At the last board meeting of Omega Group Plc., the headquarters of a large multinational company, the issue was raised that women were being discriminated in the company, in the sense that the salaries were not the same for male and female executives. A quick analysis of a sample of 50 employees (of which 24 men and 26 women) revealed that the average salary for men was about 8,700 higher than for women. This seemed like a considerable difference, so it was decided that a further analysis of the company salaries was warranted. 
+
+You are asked to carry out the analysis. The objective is to find out whether there is indeed a significant difference between the salaries of men and women, and whether the difference is due to discrimination or whether it is based on another, possibly valid, determining factor. 
+
+## Loading the data
+
+
+```{r load_omega_data}
+#Loading the CSV
+omega <- read_csv(here::here("data", "omega.csv"))
+glimpse(omega) # examine the data frame
+```
+
+## Relationship Salary - Gender ?
+
+The data frame `omega`  contains the salaries for the sample of 50 executives in the company. Can you conclude that there is a significant difference between the salaries of the male and female executives?
+
+Note that you can perform different types of analyses, and check whether they all lead to the same conclusion 
+
+.	Confidence intervals
+.	Hypothesis testing
+.	Correlation analysis
+.	Regression
+
+
+Calculate summary statistics on salary by gender. Also, create and print a dataframe where, for each gender, you show the mean, SD, sample size, the t-critical, the SE, the margin of error, and the low/high endpoints of a 95% condifence interval
+
+```{r, confint_single_valiables}
+# Summary Statistics of salary by gender
+mosaic::favstats (salary ~ gender, data=omega)
+
+# Dataframe with two rows (male-female) and having as columns gender, mean, SD, sample size, 
+# the t-critical value, the standard error, the margin of error, 
+# and the low/high endpoints of a 95% condifence interval
+
+gender_salary_ci <- omega %>%
+  group_by(gender) %>% 
+  summarise(
+    mean_salary = mean(salary),
+    sd_salary = sd(salary),
+    count = n(),
+    # get t-critical value with (n-1) degrees of freedom
+    t_critical = qt(0.975, count-1),
+    se_salary = sd_salary/sqrt(count),
+    margin_of_error = t_critical * se_salary,
+    salary_low = mean_salary - margin_of_error,
+    salary_high = mean_salary + margin_of_error
+  )
+
+gender_salary_ci
+```
+
+We observe that the 95% confidence intervals for mean salaries of both genders are not overlapping. Hence, we can conclude that there is a significant difference between the population means of salaries of males and females. 
+
+
+You can also run a hypothesis testing, assuming as a null hypothesis that the mean difference in salaries is zero, or that, on average, men and women make the same amount of money. You should tun your hypothesis testing using `t.test()` and with the simulation method from the `infer` package.
+
+Null Hypothesis $H_0$ : $\mu_{male} - \mu_{female} = 0$
+Alternative Hypothesis $H_1$ : $\mu_{male} - \mu_{female} \neq 0$
+
+```{r, hypothesis_testing_formula}
+#Hypothesis testing using t.test() 
+t.test(salary ~ gender, data= omega)
+```
+
+By conducting this t-test, it can be concluded that the null hypothesis can be rejected at 95% confidence level as the p-value is less than 0.05. We can conclude that there is a significant difference between the population means of salaries of males and females. 
+
+
+```{r, confidence_interval_infer}
+
+# hypothesis testing using infer package
+set.seed(1234)
+
+boot_salary_null <- omega %>% 
+  
+  #Specifying the variable of interest
+  specify(salary ~ gender) %>% 
+  
+  #Hypothesize a null of no difference
+  hypothesize(null = "independence") %>% 
+  
+  #Generating random samples
+  generate(reps = 1000, type = "permute") %>% 
+  
+  #Finding mean difference in samples
+  calculate(stat = "diff in means", order = c("male", "female"))
+
+boot_salary_null %>% visualize()
+
+
+#We get this error in running the following code - 
+#"Error in if (abs(pval) < 1e-16)" and hence we have commented the code out.
+# boot_salary_null %>%
+#  get_pvalue(obs_stat = mean(stat), direction = 'both')
+
+```
+
+
+Since we see that the confidence intervals do not overlap and that the p-value is less than 0.05, we can conclude that there is a significant difference between the population means of salaries of males and females.
+
+
+## Relationship Experience - Gender?
+
+At the board meeting, someone raised the issue that there was indeed a substantial difference between male and female salaries, but that this was attributable to other reasons such as differences in experience. A questionnaire send out to the 50 executives in the sample reveals that the average experience of the men is approximately 21 years, whereas the women only have about 7 years experience on average (see table below).
+
+```{r, experience_stats}
+#Summary Statistics of salary by gender
+favstats (experience ~ gender, data=omega)
+```
+
+Based on this evidence, can you conclude that there is a significant difference between the experience of the male and female executives? Perform similar analyses as in the previous section. Does your conclusion validate or endanger your conclusion about the difference in male and female salaries?  
+
+```{r, experience_CI}
+experience_ci <- omega %>%
+  group_by(gender) %>% 
+  summarise(
+    mean_experience = mean(experience),
+    sd_experience = sd(experience),
+    count = n(),
+    # get t-critical value with (n-1) degrees of freedom
+    t_critical = qt(0.975, count-1),
+    se_experience = sd_experience/sqrt(count),
+    margin_of_error = t_critical * se_experience,
+    experience_low = mean_experience - margin_of_error,
+    experience_high = mean_experience + margin_of_error
+  )
+
+experience_ci
+```
+
+We observe that the 95% confidence intervals for mean experience of both genders are not overlapping. Hence, we can conclude that there is a significant difference between the population means of experience of males and females. 
+
+
+Null Hypothesis $H_0$ : $\mu_{male} - \mu_{female} = 0$
+Alternative Hypothesis $H_1$ : $\mu_{male} - \mu_{female} \neq 0$
+
+```{r, experience_t_test}
+# hypothesis testing using t.test() 
+t.test(experience ~ gender, data= omega)
+```
+We observe that the mean experience of males is greater than that of females, and the confidence intervals for both genders are not overlapping. The p value of t test is 1e-05. Therefore, we can conclude that the population means of years of experience of males and females are statistically not the same at 95% confidence level. 
+This conclusion endangers our previous one about the difference in male and female salaries. The difference in salary may be due to the difference in experience. 
+
+
+## Relationship Salary - Experience ?
+
+Someone at the meeting argues that clearly, a more thorough analysis of the relationship between salary and experience is required before any conclusion can be drawn about whether there is any gender-based salary discrimination in the company.
+
+Analyse the relationship between salary and experience. Draw a scatterplot to visually inspect the data
+
+
+```{r, salary_exp_scatter}
+omega %>% 
+  
+  #Scatterplot between salary and experience
+  ggplot(aes(x=experience, y=salary, col=gender)) +
+  geom_point() +
+  
+  #Black and white theme
+  theme_bw() +
+  
+  #Putting title and axes labels
+  labs(title = "Scatterplot between Salary and Experience",
+       x = "Number of years of work experience",
+       y = "Salary",
+       color = "Gender")
+```
+
+
+## Check correlations between the data
+You can use `GGally:ggpairs()` to create a scatterplot and correlation matrix. Essentially, we change the order our variables will appear in and have the dependent variable (Y), salary, as last in our list. We then pipe the dataframe to `ggpairs()` with `aes` arguments to colour by `gender` and make ths plots somewhat transparent (`alpha  = 0.3`).
+
+```{r, ggpairs}
+omega %>% 
+  select(gender, experience, salary) %>% #order variables they will appear in ggpairs()
+  ggpairs(aes(colour=gender, alpha = 0.3))+
+  theme_bw()
+```
+
+We can observe that salary and work experience are positively correlated. As the number of years of work experience increase, salary increases on average. This relation holds true for males as well as females.
+However, many women executives have experience less than 5 years and several even have zero year. This means Omega just started to promote women in the previous years, while experience of men executives are more evenly distributed.
+
+
+# Challenge 1: Brexit plot
+
+Using your data manipulation and visualisation skills, please use the Brexit results dataframe (the same dataset you used in the pre-programme assignement) and produce the following plot. Use the correct colour for each party; google "UK Political Party Web Colours" and find the appropriate hex code for colours, not the default colours that R gives you.
+
+
+```{r brexit_challenge, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here::here("images", "brexit.png"), error = FALSE)
+```
+
+
+```{r load_brexit_data, warning=FALSE, message=FALSE}
+#Loading the data
+brexit_results <- read_csv(here::here("data","brexit_results.csv"))
+
+glimpse(brexit_results)
+```
+
+```{r, brexit_data_pivoted}
+#Pivoting the data to long format
+
+elections_pivoted <- brexit_results %>% 
+  
+  #Select only party columns and leave share from the data
+  select(con_2015, lab_2015, ld_2015, ukip_2015, leave_share) %>% 
+  
+  #Pivot the data longer
+  pivot_longer(cols = c(con_2015, lab_2015, ld_2015, ukip_2015),
+               names_to = 'party',
+               values_to = 'voting_share') %>% 
+  
+  #Select relevant columns
+  select(party, leave_share, voting_share) %>% 
+  
+  #Rename the columns appropriately
+  mutate(party = case_when(
+    party == "con_2015" ~ "Conserative",
+    party == "lab_2015" ~ "Labour",
+    party == "ld_2015" ~ "Lib Dems",
+    party == "ukip_2015" ~ "UKIP"
+  ))
+
+elections_pivoted
+```
+
+```{r, brexit_plot}
+elections_pivoted %>% 
+  
+  #Plotting a scatterplot
+  ggplot(aes(x=voting_share, y=leave_share, col=party)) +
+  geom_point(alpha=0.2) +
+  
+  #Adding a regression line
+  geom_smooth(method = 'lm') +
+  
+  #Expanding limits of y
+  expand_limits(y = c(20,40,60,80,100)) +
+  
+  #Coloring the points according to party colour hex codes
+  scale_colour_manual(values = c("Conserative" = "#0087DC",
+    "Labour" = "#E4003B",
+    "Lib Dems" = "#FAA61A",
+    "UKIP" = "#EFE600"
+  )) +
+  
+  #Making black & white theme and positioning the legend
+  theme_bw() +
+  theme(legend.position="bottom", 
+        legend.title = element_blank()) +
+  
+  #Adding title and axes labels
+  labs(title = "How political affiliation translated to Brexit Voting",
+       x = "Party % in the UK 2015 general election",
+       y = "Leave % in the 2016 Brexit referendum")
+```
+
+
+# Challenge 2:GDP components over time and among countries
+
+At the risk of oversimplifying things, the main components of gross domestic product, GDP are personal consumption (C), business investment (I), government spending (G) and net exports (exports - imports). You can read more about GDP and the different approaches in calculating at the [Wikipedia GDP page](https://en.wikipedia.org/wiki/Gross_domestic_product).
+
+The GDP data we will look at is from the [United Nations' National Accounts Main Aggregates Database](https://unstats.un.org/unsd/snaama/Downloads), which contains estimates of total GDP and its components for all countries from 1970 to today. We will look at how GDP and its components have changed over time, and compare different countries and how much each component contributes to that country's GDP. The file we will work with is [GDP and its breakdown at constant 2010 prices in US Dollars](http://unstats.un.org/unsd/amaapi/api/file/6) and it has already been saved in the Data directory. Have a look at the Excel file to see how it is structured and organised
+
+
+```{r, read_GDP_data}
+#Loading data
+UN_GDP_data  <-  read_excel(here::here("data", "Download-GDPconstant-USD-countries.xls"), # Excel filename
+                sheet="Download-GDPconstant-USD-countr", # Sheet name
+                skip=2) # Number of rows to skip
+
+```
+
+The first thing you need to do is to tidy the data, as it is in wide format and you must make it into long, tidy format. Please express all figures in billions (divide values by `1e9`, or $10^9$), and you want to rename the indicators into something shorter.
+
+> make sure you remove `eval=FALSE` from the next chunk of R code-- I have it there so I could knit the document
+
+
+```{r, reshape_GDP_data}
+#Pivoting the data to long format
+tidy_GDP_data  <-  UN_GDP_data %>% 
+  pivot_longer(
+  cols = 4:51,
+  names_to = 'year',
+  values_to = 'value') %>% 
+  
+  #Expressing values in billions and renaming indicators
+  mutate(value = value / 1e9,
+         year = as.integer(year),
+         IndicatorName_clean = case_when(
+           IndicatorName == "Exports of goods and services" ~ "Exports",
+           IndicatorName == "General government final consumption expenditure" ~ "Government expenditure",
+           IndicatorName == "Household consumption expenditure (including Non-profit institutions serving households)" ~ "Household expenditure",
+           IndicatorName == "Imports of goods and services" ~ "Imports",
+           TRUE ~ IndicatorName
+         ))
+  
+glimpse(tidy_GDP_data)
+
+
+# Let us compare GDP components for these 3 countries
+country_list <- c("United States","India", "Germany")
+```
+
+First, can you produce this plot?
+
+
+```{r gdp1, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here::here("images", "gdp1.png"), error = FALSE)
+```
+
+
+
+```{r, gdp_components_over_time_plot, fig.width = 8}
+tidy_GDP_data %>% 
+  
+  #Filtering for given countries and indicatores
+  filter(Country %in% country_list & IndicatorName_clean %in% c('Gross capital formation', 'Exports','Government expenditure', 'Household expenditure', 'Imports')) %>% 
+  
+  #Plotting a line chart
+  ggplot(aes(x = year, y = value, col=IndicatorName_clean)) +
+  geom_line(size = 1.05) +
+  
+  #Faceting by country
+  facet_wrap(~Country) + 
+  
+  #Picking appropriate colours for components
+  scale_colour_manual(values = c("Gross capital formation" = "coral",
+    "Exports" = "darkgoldenrod",
+    "Government expenditure" = "springgreen3",
+    "Household expenditure" = "dodgerblue",
+    "Imports" = "violet"
+  )) +
+  
+  #Changing the theme and text size
+  theme_bw() +
+  theme(text = element_text(size=8)) +
+  
+  #Renaming the legend
+  guides(col=guide_legend(title="Components of GDP")) + 
+  
+  #Adding chart title and axes labels
+  labs(title = "GDP Components over time",
+       subtitle = "In constant 2010 USD",
+       y = "Billion US$",
+       x = "") +
+  
+  #Resizing the graph
+  coord_fixed(0.01)
+```
+
+
+
+Secondly, recall that GDP is the sum of Household Expenditure (Consumption *C*), Gross Capital Formation (business investment *I*), Government Expenditure (G) and Net Exports (exports - imports). Even though there is an indicator `Gross Domestic Product (GDP)` in your dataframe, I would like you to calculate it given its components discussed above.
+
+> What is the % difference between what you calculated as GDP and the GDP figure included in the dataframe?
+
+```{r, calculate_GDP}
+tidy_GDP_calculated <- tidy_GDP_data %>% 
+  
+  #Filtering relevant countries and indicators
+  filter(Country %in% country_list & IndicatorName_clean %in% c('Gross capital formation', 'Exports','Government expenditure', 'Household expenditure', 'Imports')) %>% 
+  
+  #Taking negative of value for Imports as it has to be subtracted
+  mutate(value = case_when(
+    IndicatorName_clean == 'Imports' ~ (-1 * value),
+    TRUE ~ value
+  )) %>% 
+  
+  #Grouping by country and year
+  group_by(Country, year) %>% 
+  
+  #Calculating sum of all values to get the GDP
+  mutate(GDP_calculated = sum(value)) %>% 
+  
+  #Selecting only relevant columns
+  select(Country, year, GDP_calculated)
+
+#Dropping duplicate values
+tidy_GDP_calculated <- tidy_GDP_calculated %>% 
+  distinct(Country, year, GDP_calculated, .keep_all = TRUE)
+```
+
+
+```{r, GDP_diff}
+#Manipulating data to get given GDP
+GDP_given <- tidy_GDP_data %>% 
+  select(Country, year, IndicatorName, value) %>% 
+  filter(IndicatorName == "Gross Domestic Product (GDP)") %>% 
+  rename(GDP_given = value) %>% 
+  select(Country, year, GDP_given)
+
+#Comparing calculated and given GDPs
+GDP_diff <- left_join(tidy_GDP_calculated, GDP_given, on = c('Country', 'year'))
+
+#Turning scientific notations off
+options(scipen = 999)
+
+#Calculating percentage diff b/w calculated and given GDP
+GDP_diff <- GDP_diff %>% 
+  mutate(percentage_diff = round(((GDP_calculated - GDP_given) * 100 / GDP_given), 2))
+```
+
+```{r, analyzing_percentage_diff}
+#Plotting percentage diff
+GDP_diff %>%
+  ggplot(aes(x = percentage_diff)) +
+  geom_histogram() +
+  theme_bw() + 
+  labs(title = "Histogram for percentage difference in calculated and given GDP",
+       y = "Count",
+       x = "Percentage difference")
+
+#Summary stat for percentage_diff by country
+favstats(percentage_diff ~ Country, data = GDP_diff)
+```
+
+We observe that a lot of values have a percentage difference between Calculated and Given GDP as 0. Most of the values have a percentage difference between -4 and 4.
+On average, India's calculated and given GDP is the closest while United States has the maximum percentage difference.
+
+
+
+```{r gdp2, echo=FALSE, out.width="100%"}
+knitr::include_graphics(here::here("images", "gdp2.png"), error = FALSE)
+```
+
+> What is this last chart telling you? Can you explain in a couple of paragraphs the different dynamic among these three countries? 
+
+We observe that the Household Expenditure component is the highest for all the countries. For Germany, we see a flat line for proportion of Household expenditure over the years with a slight downward trend. For India, we see a significant downward trend from just over 70% in 1970 to around 55% in 2020. On the other hand, we see an upward trend in the US which saw an overall increase in Household Expenditure's proportion of around 6%, from 63% in 1970 to 69% in 2020.
+
+We see that Gross Capital Formation had the second highest proportion for Germany and India (except for a few years in Germany where Government Expenditure's proportion was higher). For US, Government Expenditure had the second highest proportion until around 1993, after which Gross Capital Formation surpassed and had the second highest proportion till 2020. Gross Capital Formation's proportion had no significant changes over the given years for Germany and United States, but an upward trend can be observed for India, specially in 2000s. Government expenditure's proportion showed had a flat line over the given years for Germany and India, but US shows a constant downward trend. 
+
+Net Exports had the least proportion among these components for all the countries. Germany had no significant change in proportion till 2000, after which it showed a strong upward trend. India and US had a slight downward trend for Net Exports' proportion.
+
+
+> If you want to, please change `country_list <- c("United States","India", "Germany")` to include your own country and compare it with any two other countries you like
+
+
+# Deliverables
+
+There is a lot of explanatory text, comments, etc. You do not need these, so delete them and produce a stand-alone document that you could share with someone. Knit the edited and completed R Markdown file as an HTML document (use the "Knit" button at the top of the script editor window) and upload it to Canvas.
+
+# Details
+
+- Who did you collaborate with: Study Group 4 - Harsh Tripathi, Nikolaos Panayotou, Wei Guo, Xenia Huber, Xinyue Zhang
+- Approximately how much time did you spend on this problem set: 12 hours
+- What, if anything, gave you the most trouble: Challenges
+
+
+**Please seek out help when you need it,** and remember the [15-minute rule](https://mam2022.netlify.app/syllabus/#the-15-minute-rule){target=_blank}. You know enough R (and have enough examples of code from class and your readings) to be able to do this. If you get stuck, ask for help from others, post a question on Slack-- and remember that I am here to help too!  
+
+> As a true test to yourself, do you understand the code you submitted and are you able to explain it to someone else? 
+
+
+# Rubric
+
+Check minus (1/5): Displays minimal effort. Doesn't complete all components. Code is poorly written and not documented. Uses the same type of plot for each graph, or doesn't use plots appropriate for the variables being analyzed. 
+
+Check (3/5): Solid effort. Hits all the elements. No clear mistakes. Easy to follow (both the code and the output). 
+
+Check plus (5/5): Finished all components of the assignment correctly and addressed both challenges. Code is well-documented (both self-documented and with additional comments as necessary). Used tidyverse, instead of base R. Graphs and tables are properly labelled. Analysis is clear and easy to follow, either because graphs are labeled clearly or you've written additional text to describe how you interpret the output.
