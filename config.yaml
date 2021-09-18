@@ -76,8 +76,8 @@ params:
     #   - name: Elements
     #     url: elements.html
     # menu: Menu
-    subtitle: This is my website.
-    title: LBS
+    subtitle: portfolio website
+    title: Xinyue
   tiles:
     enable: yes
     showcase:
