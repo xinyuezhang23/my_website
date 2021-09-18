@@ -6,7 +6,7 @@ description: Nullam et orci eu lorem consequat tincidunt vivamus et sagittis mag
   sed magna lacinia magna pellentesque lorem ipsum dolor. Nullam et orci eu lorem
   consequat tincidunt. Vivamus et sagittis tempus.
 draft: no
-image: Campus.jpg
+# image: Campus.jpg
 keywords: ''
 slug: xinyue
 categories:
@@ -28,7 +28,7 @@ This is a pre course homework of Applied Statics. In this file, we need to compl
 # Task 1: A brief biography
 Hi, my name is **Xinyue Zhang** and I am from **China**.   
 
-Here are some basic information about me.  
+Here is some basic information about me.  
 
 1. Undergraduate : [Shanghai University of Finance and Economics](https://english.sufe.edu.cn/), School of Information Management and Engineering 
 2. Graduate : London Business School
@@ -37,7 +37,10 @@ Here are some basic information about me.
 
 As for work experience, I have great passion in product management and data analysis. Please refer to my [LinkedIn Profile](https://www.linkedin.com/in/xinyue-zhang-9942aa155/)for more details.
 
-<!-- ![This is the photo of our main campus](Campus.jpg) -->
+This is the photo of LBS campus.
+```{r picture1, echo=FALSE, out.width="100%"}
+knitr::include_graphics("/img/Campus.jpg", error = FALSE)
+```
 
 
 

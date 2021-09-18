@@ -1,0 +1,23 @@
+---
+categories:
+- ""
+- ""
+date: "2017-10-31T22:26:09-05:00"
+description: Lorem Etiam Nullam
+draft: false
+# image: pic09.jpg
+keywords: ""
+slug: magna
+title: This is my CV
+---
+```{r load-libraries, warning=FALSE, message=FALSE, echo=FALSE}
+library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(gapminder)  # gapminder dataset
+library(here)
+library(janitor)
+```
+
+```{r label, out.width = "100%", echo=FALSE}
+knitr::include_graphics("/img/cv.jpg", error = FALSE)
+```
+
