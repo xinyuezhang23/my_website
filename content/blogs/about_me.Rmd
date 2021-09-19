@@ -1,0 +1,39 @@
+---
+title: "Introduction of Xinyue Zhang"
+date: '2017-10-31T22:42:51-05:00'
+description: Nullam et orci eu lorem consequat tincidunt vivamus et sagittis magna
+  sed nunc rhoncus condimentum sem. In efficitur ligula tate urna. Maecenas massa
+  sed magna lacinia magna pellentesque lorem ipsum dolor. Nullam et orci eu lorem
+  consequat tincidunt. Vivamus et sagittis tempus.
+draft: no
+image: myphoto.jpg
+keywords: ''
+slug: me
+categories:
+- ''
+- ''
+---
+
+# Hi,I am Xinyue Zhang
+
+## Career
+Please refer to my [LinkedIn Profile](https://www.linkedin.com/in/xinyue-zhang-9942aa155/)for more details.
+
+My career goal after graduation is to work in tech company as a **product manager**, specialized in advertising or social platform. 
+
+As for operational roles, internet product manager is a typical data-driven job that requires one to be sensitive to data and accurately identify the market and its user requirements. As for strategic levels, a product manager plays the role of planner and coordinator among team member, clients and product users. Therefore, a product manager should be adept at allocating various resources to achieve business goals and creating wealth for both company and clients.
+
+Working as a product manager intern at Tencent and Alibaba ,the two biggest Internet companies in China, has helped me to formulate this career goal. Specifically, turning my product design vision into reality and helping clients to solve real business problems, I feel an unparalleled sense of accomplishment. In addition, the rigorous data review and emphasis on scalability in the product design process taught me that immediate benefits are never the focus of a product manager. Rather, the ability to continuously create value for customers and clients to benefit them is crucial. 
+
+In the long term, I hope to be a product director, responsible for guiding future optimisation at a strategic level, such as project management, resource allocation, developing key assessment indicators, etc. A manager who can unite people with different talents and create maximum value by focusing on their respective roles is what truly scarce in workplace. 
+
+>I had internship experience in these tech companies.
+
+```{r label, out.width = "100%", echo=FALSE}
+knitr::include_graphics("/img/companies.jpg", error = FALSE)
+```
+
+
+
+
+

@@ -60,27 +60,32 @@ params:
   image: ''
   name: Your name
   navigation:
-    # button1:
-    #   - name: Get Started
-    #     url: blogs
-    # button2:
-    #   - name: Log In
-    #     url: '#'
-    # links:
-    #   - name: Home
-    #     url: '#'
-    #   - name: Blogs
-    #     url: blogs
-    #   - name: Generic Blog
-    #     url: blogs/ipsum
-    #   - name: Elements
-    #     url: elements.html
-    # menu: Menu
+    button1:
+      - name: Get Started
+        url: blogs
+    button2:
+      - name: Log In
+        url: '#'
+    links:
+      - name: Home
+        url: '#'
+      - name: Blogs
+        url: blogs
+      # - name: Generic Blog
+      #   url: blogs/ipsum
+      # - name: Elements
+      #   url: elements.html
+    menu: Menu
     subtitle: portfolio website
     title: Xinyue
   tiles:
     enable: yes
     showcase:
+      - image: me.jpg
+        subtitle: Feugiat Amet Tempus
+        title: About me
+        url: blogs/me
+        
       - image: work.jpg
         subtitle: Education and work experience
         title: My CV
@@ -105,18 +110,11 @@ params:
         subtitle: Hypothesis test 
         title: Group assignment 3
         url: blogs/homework3
-      - image: pic03.jpg
-        subtitle: Feugiat Amet Tempus
-        title: Etiam
-        url: blogs/ipsum
-  # two:
-  #   buttonText: Get Started
-  #   enable: yes
-  #   subtitle: "Nullam et orci eu lorem consequat tincidunt vivamus et sagittis libero.
-  #     \r\n    Mauris aliquet magna magna sed nunc rhoncus pharetra. \r\n    Pellentesque
-  #     condimentum sem. In efficitur ligula tate urna. Maecenas laoreet massa vel lacinia
-  #     pellentesque lorem ipsum dolor. \r\n    Nullam et orci eu lorem consequat tincidunt.
-  #     Vivamus et sagittis libero.\r\n    Mauris aliquet magna magna sed nunc rhoncus
-  #     amet pharetra et feugiat tempus."
-  #   title: Massa libero
-  #   url: blogs
+        
+
+  two:
+    buttonText: Get Started
+    enable: yes
+    subtitle: "Find out more in my personal blogs. Weekly update!(Probably)"
+    title: Blogs
+    url: blogs
