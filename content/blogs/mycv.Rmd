@@ -1,0 +1,17 @@
+---
+categories:
+- ""
+- ""
+date: "2017-10-31T22:26:09-05:00"
+description: Updated in June 2021
+draft: false
+image: mountain.jpg
+keywords: ""
+slug: cv
+title: This is my CV
+---
+
+```{r label, out.width = "100%", echo=FALSE}
+knitr::include_graphics("/img/resume.jpg", error = FALSE)
+```
+

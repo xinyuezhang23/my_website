@@ -1,12 +1,9 @@
 ---
 title: "Group assignment 1 of Applied Statics"
 date: '2017-10-31T22:42:51-05:00'
-description: Nullam et orci eu lorem consequat tincidunt vivamus et sagittis magna
-  sed nunc rhoncus condimentum sem. In efficitur ligula tate urna. Maecenas massa
-  sed magna lacinia magna pellentesque lorem ipsum dolor. Nullam et orci eu lorem
-  consequat tincidunt. Vivamus et sagittis tempus.
+description: Group work 1 is about some data visualization using ggplot.
 draft: no
-# image: pic07.jpg
+image: mountain.jpg
 keywords: ''
 slug: homework1
 categories:
@@ -1418,12 +1415,12 @@ german_election_polls &lt;- polls[[1]] %&gt;% # the first table on the page cont
          week = isoweek(end_date)
          )</code></pre>
 <pre class="r"><code>nrow(german_election_polls)</code></pre>
-<pre><code>## [1] 232</code></pre>
+<pre><code>## [1] 238</code></pre>
 <pre class="r"><code>#Removing duplicate values
 german_election_polls &lt;- german_election_polls[!duplicated(german_election_polls), ]
 
 nrow(german_election_polls)</code></pre>
-<pre><code>## [1] 231</code></pre>
+<pre><code>## [1] 237</code></pre>
 <pre class="r"><code>#Calculating rolling average for different political parties
 
 german_election_polls_avg &lt;- german_election_polls %&gt;%
