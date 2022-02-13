@@ -12,6 +12,6 @@ title: This is my CV
 ---
 
 ```{r label, out.width = "100%", echo=FALSE}
-knitr::include_graphics("/img/resume.jpg", error = FALSE)
+knitr::include_graphics("/img/resume1.jpg", error = FALSE)
 ```
 
